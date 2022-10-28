@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="sid-38422fae-e03e-43a3-bef4-bd33b32041b2" targetNamespace="http://bpmn.io/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="10.2.0">
+  <process id="Process_1" isExecutable="false">
+    <startEvent id="A">
+      <outgoing>Par_1</outgoing>
+    </startEvent>
+
+    <parallelGateway id="Par_1">
+      <incoming>A</incoming>
+      <outgoing>B</outgoing>
+      <outgoing>F</outgoing>
+    </parallelGateway>
+
+    <userTask id="B" name="B">
+      <incoming>Par_1</incoming>
+      <outgoing>Par_2</outgoing>
+    </userTask>
+
+    <userTask id="F" name="F">
+      <incoming>Par_1</incoming>
+      <outgoing>Par_4</outgoing>
+    </userTask>
+
+    <parallelGateway id="Par_2">
+      <incoming>B</incoming>
+      <outgoing>C</outgoing>
+      <outgoing>D</outgoing>
+    </parallelGateway>
+
+    <userTask id="C" name="C">
+      <incoming>Par_2</incoming>
+      <outgoing>Par_3</outgoing>
+    </userTask>
+
+    <userTask id="D" name="D">
+      <incoming>Par_2</incoming>
+      <outgoing>Par_3</outgoing>
+    </userTask>
+
+    <parallelGateway id="Par_3">
+      <incoming>C</incoming>
+      <incoming>D</incoming>
+      <outgoing>M</outgoing>
+    </parallelGateway>
+
+    <userTask id="M" name="M">
+      <incoming>Par_3</incoming>
+      <outgoing>Par_4</outgoing>
+    </userTask>
+
+    <parallelGateway id="Par_4">
+      <incoming>M</incoming>
+      <incoming>F</incoming>
+      <outgoing>G</outgoing>
+    </parallelGateway>
+
+    <endEvent id="G">
+      <incoming>Par_4</incoming>
+    </endEvent>
+  </process>
+</definitions>
