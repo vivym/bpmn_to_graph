@@ -15,14 +15,16 @@ def get_text(node):
 
 
 def bpmn_to_graph(root_dom: Document):
-    start_node = root_dom.getElementsByTagName("startEvent")[0]
-    end_node = root_dom.getElementsByTagName("endEvent")[0]
-    task_nodes = root_dom.getElementsByTagName("userTask")
-    seq_flows = root_dom.getElementsByTagName("sequenceFlow")
-    par_gateways = root_dom.getElementsByTagName("parallelGateway")
-    exc_gateways = root_dom.getElementsByTagName("exclusiveGateway")
+    prefix = "bpmn:"
 
-    node_list = [start_node, end_node] + task_nodes + par_gateways + exc_gateways
+    start_nodes = root_dom.getElementsByTagName(f"{prefix}startEvent")
+    end_nodes = root_dom.getElementsByTagName(f"{prefix}endEvent")
+    task_nodes = root_dom.getElementsByTagName(f"{prefix}task")
+    seq_flows = root_dom.getElementsByTagName(f"{prefix}sequenceFlow")
+    par_gateways = root_dom.getElementsByTagName(f"{prefix}parallelGateway")
+    exc_gateways = root_dom.getElementsByTagName(f"{prefix}exclusiveGateway")
+
+    node_list = start_nodes + end_nodes + task_nodes + par_gateways + exc_gateways
 
     seq_flow_ids = []
     par_gateway_ids = []
@@ -34,11 +36,11 @@ def bpmn_to_graph(root_dom: Document):
         node_id = node.getAttribute("id")
         node_name = node.getAttribute("name")
 
-        if node_type == "sequenceFlow":
+        if node_type == f"{prefix}sequenceFlow":
             seq_flow_ids.append(node_id)
-        elif node_type == "parallelGateway":
+        elif node_type == f"{prefix}parallelGateway":
             par_gateway_ids.append(node_id)
-        elif node_type == "exclusiveGateway":
+        elif node_type == f"{prefix}exclusiveGateway":
             exc_gateway_ids.append(node_id)
 
         G.add_node(node_id, type=node_type, name=node_name)
@@ -49,11 +51,11 @@ def bpmn_to_graph(root_dom: Document):
         for child in node.childNodes:
             if child.nodeType == child.TEXT_NODE:
                 continue
-            assert child.tagName in ["incoming", "outgoing"]
+            assert child.tagName in [f"{prefix}incoming", f"{prefix}outgoing"]
             child_id = get_text(child)
-            if child.tagName == "incoming":
+            if child.tagName == f"{prefix}incoming":
                 G.add_edge(child_id, node_id)
-            elif child.tagName == "outgoing":
+            elif child.tagName == f"{prefix}outgoing":
                 G.add_edge(node_id, child_id)
 
     for node_id in seq_flow_ids + exc_gateway_ids:
@@ -71,6 +73,10 @@ def bpmn_to_graph(root_dom: Document):
         G.remove_node(node_id)
 
     H = G.copy()
+
+    while not nx.is_directed_acyclic_graph(G):
+        cycle = nx.find_cycle(G, orientation="original")
+        G.remove_edge(*cycle[-1][:2])
 
     for (u, v), lca in nx.all_pairs_lowest_common_ancestor(G):
         if u == lca or v == lca:
@@ -93,7 +99,6 @@ def bpmn_to_graph(root_dom: Document):
         if ok_u and ok_v:
             H.add_edge(u, v)
             H.add_edge(v, u)
-            # print("add", u, v)
 
     return H
 
