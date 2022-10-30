@@ -1,4 +1,3 @@
-import argparse
 from xml.dom.minidom import parse, Document
 
 import numpy as np
@@ -102,21 +101,15 @@ def bpmn_to_graph(root_dom: Document, prefix: str = "bpmn:"):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("bpmn", type=str)
-    parser.add_argument("--out", type=str, default="adj_matrix.npy")
-    parser.add_argument("--show", action="store_true")
-    args = parser.parse_args()
-
-    root_dom = parse(args.bpmn)
-    G = bpmn_to_graph(root_dom)
+    root_dom = parse("data/demo.bpmn")
+    G = bpmn_to_graph(root_dom, prefix="")
 
     adj_matrix = np.asarray(nx.adjacency_matrix(G).todense())
-    np.save(args.out, adj_matrix)
+    print(adj_matrix)
+    np.save("adj_matrix.npy", adj_matrix)
 
-    if args.show:
-        nx.draw(G, with_labels=True)
-        plt.show()
+    nx.draw(G, with_labels=True)
+    plt.show()
 
 
 if __name__ == "__main__":
