@@ -1,3 +1,4 @@
+import copy
 from xml.dom.minidom import parse, Document
 
 import numpy as np
@@ -16,7 +17,8 @@ def get_text(node):
 def bpmn_to_graph(root_dom: Document, prefix: str = "bpmn:"):
     start_nodes = root_dom.getElementsByTagName(f"{prefix}startEvent")
     end_nodes = root_dom.getElementsByTagName(f"{prefix}endEvent")
-    task_nodes = root_dom.getElementsByTagName(f"{prefix}task" if prefix else "userTask")
+    # task_nodes = root_dom.getElementsByTagName(f"{prefix}task" if prefix else "userTask")
+    task_nodes = root_dom.getElementsByTagName(f"{prefix}task")
     seq_flows = root_dom.getElementsByTagName(f"{prefix}sequenceFlow")
     par_gateways = root_dom.getElementsByTagName(f"{prefix}parallelGateway")
     exc_gateways = root_dom.getElementsByTagName(f"{prefix}exclusiveGateway")
@@ -48,7 +50,7 @@ def bpmn_to_graph(root_dom: Document, prefix: str = "bpmn:"):
         for child in node.childNodes:
             if child.nodeType == child.TEXT_NODE:
                 continue
-            assert child.tagName in [f"{prefix}incoming", f"{prefix}outgoing"]
+            assert child.tagName in [f"{prefix}incoming", f"{prefix}outgoing", "extensionElements"]
             child_id = get_text(child)
             if child.tagName == f"{prefix}incoming":
                 G.add_edge(child_id, node_id)
@@ -69,7 +71,7 @@ def bpmn_to_graph(root_dom: Document, prefix: str = "bpmn:"):
 
         G.remove_node(node_id)
 
-    H = G.copy()
+    H = copy.deepcopy(G)
 
     while not nx.is_directed_acyclic_graph(G):
         cycle = nx.find_cycle(G, orientation="original")
@@ -101,7 +103,7 @@ def bpmn_to_graph(root_dom: Document, prefix: str = "bpmn:"):
 
 
 def main():
-    root_dom = parse("data/demo.bpmn")
+    root_dom = parse("data/Model8.bpmn")
     G = bpmn_to_graph(root_dom, prefix="")
 
     adj_matrix = np.asarray(nx.adjacency_matrix(G).todense())
